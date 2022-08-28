@@ -1,0 +1,92 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class Move : MonoBehaviour
+{
+
+    private Vector2 _direction = Vector2.right;
+
+    private List<Transform> _schwanz = new List<Transform>();
+
+    public Transform schwanz;
+
+    public int initialSize = 4;
+
+    private void Start()
+    {
+        ResetState();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            _direction = Vector2.up;
+        } else if (Input.GetKeyDown(KeyCode.A))
+        {
+            _direction = Vector2.left;
+        } else if (Input.GetKeyDown(KeyCode.S))
+        {
+            _direction = Vector2.down;
+        } else if (Input.GetKeyDown(KeyCode.D))
+        {
+            _direction = Vector2.right;
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        for (int i = _schwanz.Count - 1; i > 0; i--)
+        {
+            _schwanz[i].position = _schwanz[i - 1].position;
+        }
+
+        this.transform.position = new Vector3(
+            Mathf.Round(this.transform.position.x) + _direction.x,
+            Mathf.Round(this.transform.position.y) + _direction.y,
+            0.0f
+            );
+    }
+
+
+    private void Grow()
+    {
+        Transform Schwanz =Instantiate(this.schwanz);
+        Schwanz.position = _schwanz[_schwanz.Count - 1].position;
+
+        _schwanz.Add(Schwanz);
+    }
+
+    private void ResetState()
+    {
+        for (int i = 1; i < _schwanz.Count; i++)
+        {
+            Destroy(_schwanz[i].gameObject);
+        }
+ 
+            _schwanz.Clear();
+            _schwanz.Add(this.transform);
+
+        for (int i = 1; i < this.initialSize; i++)
+        {
+            _schwanz.Add(Instantiate(this.schwanz));
+        }
+
+            this.transform.position = Vector3.zero;
+        
+       
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.tag == "Food")
+        {
+            Grow();
+        } else if (other.tag == "dead")
+        {
+            ResetState();
+            SceneManager.LoadScene("manu");
+        }
+    }
+}
